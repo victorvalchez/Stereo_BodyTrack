@@ -4,17 +4,17 @@ from utils import get_projection_matrix, write_keypoints_to_disk
 
 if __name__ == '__main__':
 
-    # I created two sample videos for testing. You can use your own videos by passing the camera id as command line arguements.
+    # He creado dos videos de muestra para probar el código. Si no se proporciona ningún ID de cámara, se utilizarán estos videos.
     camera1_input = './media/video_cam0.mp4'
     camera2_input = './media/video_cam1.mp4'
 
-    #put camera id as command line arguements
+    # Obtener el ID de la cámara de la línea de comandos
     if len(sys.argv) == 3:
         camera1_input = int(sys.argv[1])
         camera2_input = int(sys.argv[2])
     else:
-        print('No camera ID provided.\n\tUsage: python main.py <camera1_id> <camera2_id>')
-        print('Using sample videos for testing\n')
+        print('No se ha proporcionado ningún ID.\n\Utilización: python main.py <camera1_id> <camera2_id>')
+        print('Usando videos de ejemplo...\n')
 
     # Get projection matrices
     # Warning!: P0 should be the projection matrix of the front camera so that the representation in Unity is facing forward. 
