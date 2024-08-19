@@ -9,3 +9,4 @@ checkerboard_box_size_scale : 3.2
 checkerboard_rows: 4
 checkerboard_columns: 7
 cooldown: 100
+check_calibration: True
