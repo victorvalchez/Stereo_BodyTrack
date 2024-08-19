@@ -5,88 +5,88 @@ import sys
 from utils import DLT, get_projection_matrix, write_keypoints_to_disk, estimate_3d_point_from_single_view
 import socket
 
-# MediaPipe setup
-mp_drawing = mp.solutions.drawing_utils  # Drawing helpers
-mp_drawing_styles = mp.solutions.drawing_styles  # Drawing styles
-mp_pose = mp.solutions.pose  # Mediapipe pose model
+# Configuración de MediaPipe
+mp_drawing = mp.solutions.drawing_utils  # Ayudantes de dibujo
+mp_drawing_styles = mp.solutions.drawing_styles  # Estilos de dibujo
+mp_pose = mp.solutions.pose  # Modelo de pose de Mediapipe
 
 frame_shape = [720, 1280]
 
-#32 keypoints are detected by mediapipe. Which means the whole body is detected.
+# 32 puntos clave son detectados por mediapipe. Lo que significa que se detecta todo el cuerpo.
 pose_keypoints = [i for i in range(33)]
 
-# Create a socket object (UDP)
+# Crear un objeto de socket (UDP)
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_address = ('localhost', 12345)
 
 def run_mp(input_stream1, input_stream2, P0, P1):
-    #input video stream
+    # Flujo de video de entrada
     cap0 = cv.VideoCapture(input_stream1)
     cap1 = cv.VideoCapture(input_stream2)
     caps = [cap0, cap1]
 
-    #set camera resolution if using webcam to 1280x720. Any bigger will cause some lag for hand detection
+    # Establecer la resolución de la cámara si se usa una webcam a 1280x720. Cualquier tamaño mayor causará algún retraso en la detección de manos
     for cap in caps:
         cap.set(3, frame_shape[1])
         cap.set(4, frame_shape[0])
 
-    #create body keypoints detector objects.
+    # Crear objetos detectores de puntos clave del cuerpo.
     pose0 = mp_pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8)
     pose1 = mp_pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8)
 
-    #containers for detected keypoints for each camera. These are filled at each frame.
-    #This will run you into memory issue if you run the program without stop
+    # Contenedores para los puntos clave detectados para cada cámara. Estos se llenan en cada cuadro.
+    # Esto te llevará a problemas de memoria si ejecutas el programa sin detenerlo
     kpts_cam0 = []
     kpts_cam1 = []
     kpts_3d = []
     while True:
 
-        #read frames from stream
+        # Leer cuadros del flujo
         ret0, frame0 = cap0.read()
         ret1, frame1 = cap1.read()
 
         if not ret0 or not ret1: break
 
-        #crop to 720x720.
-        #Note: camera calibration parameters are set to this resolution.If you change this, make sure to also change camera intrinsic parameters
-        #if frame0.shape[1] != 720:
-            #frame0 = frame0[:,frame_shape[1]//2 - frame_shape[0]//2:frame_shape[1]//2 + frame_shape[0]//2]
-            #frame1 = frame1[:,frame_shape[1]//2 - frame_shape[0]//2:frame_shape[1]//2 + frame_shape[0]//2]
+        # Recortar a 720x720.
+        # Nota: los parámetros de calibración de la cámara están configurados a esta resolución. Si cambias esto, asegúrate de también cambiar los parámetros intrínsecos de la cámara
+        # if frame0.shape[1] != 720:
+            # frame0 = frame0[:,frame_shape[1]//2 - frame_shape[0]//2:frame_shape[1]//2 + frame_shape[0]//2]
+            # frame1 = frame1[:,frame_shape[1]//2 - frame_shape[0]//2:frame_shape[1]//2 + frame_shape[0]//2]
 
-        # the BGR image to RGB.
+        # Convertir la imagen BGR a RGB.
         frame0 = cv.cvtColor(frame0, cv.COLOR_BGR2RGB)
         frame1 = cv.cvtColor(frame1, cv.COLOR_BGR2RGB)
 
-        # To improve performance, optionally mark the image as not writeable to
-        # pass by reference.
+        # Para mejorar el rendimiento, opcionalmente marca la imagen como no escribible para
+        # pasar por referencia.
         frame0.flags.writeable = False
         frame1.flags.writeable = False
         results0 = pose0.process(frame0)
         results1 = pose1.process(frame1)
 
-        #reverse changes
+        # Revertir cambios
         frame0.flags.writeable = True
         frame1.flags.writeable = True
         frame0 = cv.cvtColor(frame0, cv.COLOR_RGB2BGR)
         frame1 = cv.cvtColor(frame1, cv.COLOR_RGB2BGR)
 
-        #check for keypoints detection
+        # Verificar la detección de puntos clave
         frame0_keypoints = []
         if results0.pose_landmarks:
             for i, landmark in enumerate(results0.pose_landmarks.landmark):
-                if i not in pose_keypoints: continue #only save keypoints that are indicated in pose_keypoints
+                if i not in pose_keypoints: continue # Solo guardar puntos clave que están indicados en pose_keypoints
                 pxl_x = landmark.x * frame0.shape[1]
                 pxl_y = landmark.y * frame0.shape[0]
                 pxl_x = int(round(pxl_x))
                 pxl_y = int(round(pxl_y))
-                cv.circle(frame0,(pxl_x, pxl_y), 3, (0,0,255), -1) #add keypoint detection points into figure
+                cv.circle(frame0,(pxl_x, pxl_y), 3, (0,0,255), -1) # Agregar puntos de detección de puntos clave en la figura
                 kpts = [pxl_x, pxl_y]
                 frame0_keypoints.append(kpts)
         else:
-            #if no keypoints are found, simply fill the frame data with [-1,-1] for each kpt
+            # Si no se encuentran puntos clave, simplemente llena los datos del cuadro con [-1,-1] para cada punto clave
             frame0_keypoints = [[-1, -1]]*len(pose_keypoints)
 
-        #this will keep keypoints of this frame in memory
+        # Esto mantendrá los puntos clave de este cuadro en memoria
         kpts_cam0.append(frame0_keypoints)
 
         frame1_keypoints = []
@@ -102,14 +102,14 @@ def run_mp(input_stream1, input_stream2, P0, P1):
                 frame1_keypoints.append(kpts)
 
         else:
-            #if no keypoints are found, simply fill the frame data with [-1,-1] for each kpt
+            # Si no se encuentran puntos clave, simplemente llena los datos del cuadro con [-1,-1] para cada punto clave
             frame1_keypoints = [[-1, -1]]*len(pose_keypoints)
 
-        #update keypoints container
+        # Actualizar el contenedor de puntos clave
         kpts_cam1.append(frame1_keypoints)
 
-        # Our own DLT implementation
-        #calculate 3d position
+        # Nuestra propia implementación de DLT
+        # Calcular la posición 3D
         frame_p3ds = []
         for uv1, uv2 in zip(frame0_keypoints, frame1_keypoints):
             if uv1[0] == -1 or uv2[0] == -1:
@@ -120,13 +120,13 @@ def run_mp(input_stream1, input_stream2, P0, P1):
 
         frame_p3ds = np.array(frame_p3ds).reshape((33, 3))
         
-        # Send the data to Unity through UDP
+        # Enviar los datos a Unity a través de UDP
         s.sendto(str(frame_p3ds).encode(), server_address)
 
-        # Append the 3D keypoints to the list
+        # Agregar los puntos clave 3D a la lista
         kpts_3d.append(frame_p3ds)
 
-        # uncomment these if you want to see the full keypoints detections
+        # Descomentar estos si quieres ver las detecciones completas de puntos clave
         mp_drawing.draw_landmarks(frame0, results0.pose_landmarks, mp_pose.POSE_CONNECTIONS,
                                    landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
         #
@@ -137,7 +137,7 @@ def run_mp(input_stream1, input_stream2, P0, P1):
         cv.imshow('cam0', frame0)
 
         k = cv.waitKey(1)
-        if k & 0xFF == 27: break #27 is ESC key.
+        if k & 0xFF == 27: break # 27 es la tecla ESC.
 
 
     cv.destroyAllWindows()
