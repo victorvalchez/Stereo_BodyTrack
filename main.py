@@ -13,7 +13,7 @@ if __name__ == '__main__':
         camera1_input = int(sys.argv[1])
         camera2_input = int(sys.argv[2])
     else:
-        print('No se ha proporcionado ningún ID.\n\Utilización: python main.py <camera1_id> <camera2_id>')
+        print('No se ha proporcionado ningún ID.\n\t Utilización: python main.py <camera1_id> <camera2_id>')
         print('Usando videos de ejemplo...\n')
 
     # Get projection matrices

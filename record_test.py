@@ -6,7 +6,12 @@ filename1 = './media/video_cam0.mp4'
 filename2 = './media/video_cam1.mp4'
 frames_per_second = 30.0
 res = '720p'
-test = True
+
+record = str(input('Record video? (y/n): ').lower())
+if record == 'y':
+    record = True
+else:
+    record = False
 
 # Set resolution for the video capture
 def change_res(cap, width, height):
@@ -54,12 +59,12 @@ while True:
     ret1, frame1 = cap1.read()
 
     if ret0:
-        if not test:
+        if record:
             out0.write(frame0)
         cv2.imshow('Webcam 0', frame0)
 
     if ret1:
-        if not test:
+        if record:
             out1.write(frame1)
         cv2.imshow('Webcam 1', frame1)
 
