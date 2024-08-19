@@ -1,0 +1,7 @@
+opencv-python
+scipy
+pyYAML
+numpy
+mediapipe
+matplotlib
+seaborn
