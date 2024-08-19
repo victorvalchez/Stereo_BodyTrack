@@ -31,8 +31,8 @@ def run_mp(input_stream1, input_stream2, P0, P1):
         cap.set(4, frame_shape[0])
 
     #create body keypoints detector objects.
-    pose0 = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
-    pose1 = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+    pose0 = mp_pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8)
+    pose1 = mp_pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8)
 
     #containers for detected keypoints for each camera. These are filled at each frame.
     #This will run you into memory issue if you run the program without stop
@@ -114,14 +114,7 @@ def run_mp(input_stream1, input_stream2, P0, P1):
         for uv1, uv2 in zip(frame0_keypoints, frame1_keypoints):
             if uv1[0] == -1 or uv2[0] == -1:
                 _p3d = [-1, -1, -1]
-            elif uv1[0] != -1 and uv2[0] == -1:
-                # Estimate 3D point using uv1
-                _p3d = estimate_3d_point_from_single_view(P0, uv1)
-            elif uv1[0] == -1 and uv2[0] != -1:
-                # Estimate 3D point using uv2
-                _p3d = estimate_3d_point_from_single_view(P1, uv2)
             else:
-                # Calculate 3D position using DLT if both keypoints are valid
                 _p3d = DLT(P0, P1, uv1, uv2)
             frame_p3ds.append(_p3d)
 
@@ -153,25 +146,3 @@ def run_mp(input_stream1, input_stream2, P0, P1):
 
     
     return np.array(kpts_cam0), np.array(kpts_cam1), np.array(kpts_3d)
-
-if __name__ == '__main__':
-
-    #this will load the sample videos if no camera ID is given
-    input_stream1 = 'media/cam0_test.mp4'
-    input_stream2 = 'media/cam1_test.mp4'
-
-    #put camera id as command line arguements
-    if len(sys.argv) == 3:
-        input_stream1 = int(sys.argv[1])
-        input_stream2 = int(sys.argv[2])
-
-    #get projection matrices
-    P0 = get_projection_matrix(0)
-    P1 = get_projection_matrix(1)
-
-    kpts_cam0, kpts_cam1, kpts_3d = run_mp(input_stream1, input_stream2, P0, P1)
-
-    #this will create keypoints file in current working folder
-    write_keypoints_to_disk('./data/kpts_cam0.dat', kpts_cam0)
-    write_keypoints_to_disk('./data/kpts_cam1.dat', kpts_cam1)
-    write_keypoints_to_disk('./data/kpts_3d.dat', kpts_3d)

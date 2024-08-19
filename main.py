@@ -5,8 +5,8 @@ from utils import get_projection_matrix, write_keypoints_to_disk
 if __name__ == '__main__':
 
     # I created two sample videos for testing. You can use your own videos by passing the camera id as command line arguements.
-    camera1_input = 'media/video_cam0.mp4'
-    camera2_input = 'media/video_cam1.mp4'
+    camera1_input = './media/video_cam0.mp4'
+    camera2_input = './media/video_cam1.mp4'
 
     #put camera id as command line arguements
     if len(sys.argv) == 3:
