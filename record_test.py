@@ -2,8 +2,8 @@ import numpy as np
 import os
 import cv2
 
-filename1 = 'video_cam0.mp4'
-filename2 = 'video_cam1.mp4'
+filename1 = './media/video_cam0.mp4'
+filename2 = './media/video_cam1.mp4'
 frames_per_second = 30.0
 res = '720p'
 

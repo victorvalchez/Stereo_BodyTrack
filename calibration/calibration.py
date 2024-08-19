@@ -51,8 +51,8 @@ def parse_calibration_settings_file(filename):
 def save_frames_single_camera(camera_name):
 
     #create frames directory
-    if not os.path.exists('frames'):
-        os.mkdir('frames')
+    if not os.path.exists('./calibration/frames'):
+        os.mkdir('./calibration/frames')
 
     #get settings
     camera_device_id = calibration_settings[camera_name]
@@ -92,7 +92,7 @@ def save_frames_single_camera(camera_name):
             
             #save the frame when cooldown reaches 0.
             if cooldown <= 0:
-                savename = os.path.join('frames', camera_name + '_' + str(saved_count) + '.png')
+                savename = os.path.join('./calibration/frames', camera_name + '_' + str(saved_count) + '.png')
                 cv.imwrite(savename, frame)
                 saved_count += 1
                 cooldown = cooldown_time
@@ -208,8 +208,8 @@ def save_camera_intrinsics(camera_matrix, distortion_coefs, camera_name):
 def save_frames_two_cams(camera0_name, camera1_name):
 
     #create frames directory
-    if not os.path.exists('frames_pair'):
-        os.mkdir('frames_pair')
+    if not os.path.exists('./calibration/frames_pair'):
+        os.mkdir('./calibration/frames_pair')
 
     #settings for taking data
     view_resize = calibration_settings['view_resize']
@@ -257,10 +257,10 @@ def save_frames_two_cams(camera0_name, camera1_name):
 
             #save the frame when cooldown reaches 0.
             if cooldown <= 0:
-                savename = os.path.join('frames_pair', camera0_name + '_' + str(saved_count) + '.png')
+                savename = os.path.join('./calibration/frames_pair', camera0_name + '_' + str(saved_count) + '.png')
                 cv.imwrite(savename, frame0)
 
-                savename = os.path.join('frames_pair', camera1_name + '_' + str(saved_count) + '.png')
+                savename = os.path.join('./calibration/frames_pair', camera1_name + '_' + str(saved_count) + '.png')
                 cv.imwrite(savename, frame1)
 
                 saved_count += 1
@@ -580,11 +580,11 @@ if __name__ == '__main__':
 
     """Step2. Obtain camera intrinsic matrices and save them"""
     #camera0 intrinsics
-    images_prefix = os.path.join('frames', 'camera0*')
+    images_prefix = os.path.join('./calibration/frames', 'camera0*')
     cmtx0, dist0 = calibrate_camera_for_intrinsic_parameters(images_prefix) 
     save_camera_intrinsics(cmtx0, dist0, 'camera0') #this will write cmtx and dist to disk
     #camera1 intrinsics
-    images_prefix = os.path.join('frames', 'camera1*')
+    images_prefix = os.path.join('./calibration/frames', 'camera1*')
     cmtx1, dist1 = calibrate_camera_for_intrinsic_parameters(images_prefix)
     save_camera_intrinsics(cmtx1, dist1, 'camera1') #this will write cmtx and dist to disk
 
@@ -594,8 +594,8 @@ if __name__ == '__main__':
 
 
     """Step4. Use paired calibration pattern frames to obtain camera0 to camera1 rotation and translation"""
-    frames_prefix_c0 = os.path.join('frames_pair', 'camera0*')
-    frames_prefix_c1 = os.path.join('frames_pair', 'camera1*')
+    frames_prefix_c0 = os.path.join('./calibration/frames_pair', 'camera0*')
+    frames_prefix_c1 = os.path.join('./calibration/frames_pair', 'camera1*')
     R, T = stereo_calibrate(cmtx0, dist0, cmtx1, dist1, frames_prefix_c0, frames_prefix_c1)
 
 

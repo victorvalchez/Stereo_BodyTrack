@@ -5,3 +5,4 @@ calibration/frames_pair
 camera_parameters
 __pycache__
 data
+.venv
