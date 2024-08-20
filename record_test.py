@@ -27,7 +27,7 @@ STD_DIMENSIONS =  {
 }
 
 # Grab resolution dimensions and set video capture to it.
-def get_dims(cap, res='1080p'):
+def get_dims(cap, res='720p'):
     width, height = STD_DIMENSIONS["480p"]
     if res in STD_DIMENSIONS:
         width, height = STD_DIMENSIONS[res]
