@@ -4,6 +4,7 @@ import numpy as np
 import sys
 from utils import DLT, get_projection_matrix, write_keypoints_to_disk, estimate_3d_point_from_single_view
 import socket
+import time
 
 # Configuración de MediaPipe
 mp_drawing = mp.solutions.drawing_utils  # Ayudantes de dibujo
@@ -61,8 +62,11 @@ def run_mp(input_stream1, input_stream2, P0, P1):
         # pasar por referencia.
         frame0.flags.writeable = False
         frame1.flags.writeable = False
+        start_time = time.time()
         results0 = pose0.process(frame0)
         results1 = pose1.process(frame1)
+        print("Time taken for pose estimation: ", time.time() - start_time)
+        print("FPS: ", 1/(time.time() - start_time))
 
         # Revertir cambios
         frame0.flags.writeable = True
@@ -72,6 +76,7 @@ def run_mp(input_stream1, input_stream2, P0, P1):
 
         # Verificar la detección de puntos clave
         frame0_keypoints = []
+        frame0_np = []
         if results0.pose_landmarks:
             for i, landmark in enumerate(results0.pose_landmarks.landmark):
                 if i not in pose_keypoints: continue # Solo guardar puntos clave que están indicados en pose_keypoints
@@ -82,14 +87,17 @@ def run_mp(input_stream1, input_stream2, P0, P1):
                 cv.circle(frame0,(pxl_x, pxl_y), 3, (0,0,255), -1) # Agregar puntos de detección de puntos clave en la figura
                 kpts = [pxl_x, pxl_y]
                 frame0_keypoints.append(kpts)
+                frame0_np.append(np.array(kpts, dtype=float))
         else:
             # Si no se encuentran puntos clave, simplemente llena los datos del cuadro con [-1,-1] para cada punto clave
             frame0_keypoints = [[-1, -1]]*len(pose_keypoints)
+            frame0_np = np.array([[-1, -1]]*len(pose_keypoints))
 
         # Esto mantendrá los puntos clave de este cuadro en memoria
         kpts_cam0.append(frame0_keypoints)
 
         frame1_keypoints = []
+        frame1_np = []
         if results1.pose_landmarks:
             for i, landmark in enumerate(results1.pose_landmarks.landmark):
                 if i not in pose_keypoints: continue
@@ -99,11 +107,14 @@ def run_mp(input_stream1, input_stream2, P0, P1):
                 pxl_y = int(round(pxl_y))
                 cv.circle(frame1,(pxl_x, pxl_y), 3, (0,0,255), -1)
                 kpts = [pxl_x, pxl_y]
+                kpts_np = np.array(kpts, dtype=float)
                 frame1_keypoints.append(kpts)
+                frame1_np.append(kpts_np)
 
         else:
             # Si no se encuentran puntos clave, simplemente llena los datos del cuadro con [-1,-1] para cada punto clave
             frame1_keypoints = [[-1, -1]]*len(pose_keypoints)
+            frame1_np = np.array([[-1, -1]]*len(pose_keypoints))
 
         # Actualizar el contenedor de puntos clave
         kpts_cam1.append(frame1_keypoints)
@@ -111,20 +122,37 @@ def run_mp(input_stream1, input_stream2, P0, P1):
         # Nuestra propia implementación de DLT
         # Calcular la posición 3D
         frame_p3ds = []
+        frame_3ds_triangulated = [i for i in range(33)]
         for uv1, uv2 in zip(frame0_keypoints, frame1_keypoints):
             if uv1[0] == -1 or uv2[0] == -1:
                 _p3d = [-1, -1, -1]
             else:
                 _p3d = DLT(P0, P1, uv1, uv2)
             frame_p3ds.append(_p3d)
+            
+        # Si lo hacemos con triangulate points
+        # Tras esto ya tenemos las coordenadas para cada keypoint, solo queda calcular la posicion 3D de estos.       
+        for kpt, uv1, uv2 in zip(pose_keypoints, frame0_np, frame1_np):            
+            if uv1[0] != -1 and uv2[0] != -1:
+                p4d = cv.triangulatePoints(P0, P1, uv1, uv2)  # calculate 3d position of keypoints.
+                p3d = (p4d[:3, 0] / p4d[3, 0]).T
+            else:
+                p3d = np.array([-1, -1, -1])
+
+            frame_3ds_triangulated[kpt] = p3d.copy()
 
         frame_p3ds = np.array(frame_p3ds).reshape((33, 3))
-        
+        frame_3ds_triangulated = np.array(frame_3ds_triangulated).reshape((33, 3))
         # Enviar los datos a Unity a través de UDP
         s.sendto(str(frame_p3ds).encode(), server_address)
 
+        # Redondear a cero decimales
+        frame_p3ds = np.round(frame_p3ds, decimals=0)
+        #print("Puntos 3d con DLT: ", frame_p3ds)
+        print("Puntos 3d con triangulatePoints: ", frame_3ds_triangulated)
+        
         # Agregar los puntos clave 3D a la lista
-        kpts_3d.append(frame_p3ds)
+        kpts_3d.append(frame_3ds_triangulated)
 
         # Descomentar estos si quieres ver las detecciones completas de puntos clave
         mp_drawing.draw_landmarks(frame0, results0.pose_landmarks, mp_pose.POSE_CONNECTIONS,
