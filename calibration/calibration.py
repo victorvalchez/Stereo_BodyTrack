@@ -169,7 +169,7 @@ def calibrate_camera_for_intrinsic_parameters(frames_path):
 
             corners = cv.cornerSubPix(gray, corners, conv_size, (-1, -1), criteria)
             cv.drawChessboardCorners(frame, (rows,columns), corners, ret)
-            cv.putText(frame, 'Si los puntos detectados no son precisos presiona S para omitir este frame.',
+            cv.putText(frame, 'Si la deteccion no es precisa presiona S para omitir este frame.',
                        (25, 25), cv.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 1)
 
             cv.imshow('Frame', frame)
@@ -186,7 +186,7 @@ def calibrate_camera_for_intrinsic_parameters(frames_path):
     cv.destroyAllWindows()
     ret, cmtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, (width, height), None, None)
     print('RMSE:', ret)
-    print('Matriz de la cámara:\n', cmtx)
+    print('Matriz intrínseca de la cámara:\n', cmtx)
     print('Coeficientes de distorsión:', dist)
 
     return cmtx, dist
@@ -365,7 +365,7 @@ def stereo_calibrate(mtx0, dist0, mtx1, dist1, frames_prefix_c0, frames_prefix_c
     ret, CM1, dist0, CM2, dist1, R, T, E, F = cv.stereoCalibrate(objpoints, imgpoints_left, imgpoints_right, mtx0, dist0,
                                                                  mtx1, dist1, (width, height), criteria = criteria, flags = stereocalibration_flags)
 
-    print('RSME: ', ret)
+    print('RSME: ', ret)    
     
     cv.destroyAllWindows()
     return R, T
