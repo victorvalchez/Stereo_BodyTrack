@@ -65,8 +65,8 @@ def run_mp(input_stream1, input_stream2, P0, P1):
         start_time = time.time()
         results0 = pose0.process(frame0)
         results1 = pose1.process(frame1)
-        print("Time taken for pose estimation: ", time.time() - start_time)
-        print("FPS: ", 1/(time.time() - start_time))
+        # print("Time taken for pose estimation: ", time.time() - start_time)
+        # print("FPS: ", 1/(time.time() - start_time))
 
         # Revertir cambios
         frame0.flags.writeable = True
@@ -149,7 +149,7 @@ def run_mp(input_stream1, input_stream2, P0, P1):
         # Redondear a cero decimales
         frame_p3ds = np.round(frame_p3ds, decimals=0)
         #print("Puntos 3d con DLT: ", frame_p3ds)
-        print("Puntos 3d con triangulatePoints: ", frame_3ds_triangulated)
+        # print("Puntos 3d con triangulatePoints: ", frame_3ds_triangulated)
         
         # Agregar los puntos clave 3D a la lista
         kpts_3d.append(frame_3ds_triangulated)
