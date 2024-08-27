@@ -5,3 +5,4 @@ calibration/frames_pair
 __pycache__
 data
 .venv
+frame_snaps

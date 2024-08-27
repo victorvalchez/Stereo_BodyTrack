@@ -40,6 +40,9 @@ def run_mp(input_stream1, input_stream2, P0, P1):
     kpts_cam0 = []
     kpts_cam1 = []
     kpts_3d = []
+    
+    frame_count = 0  # Contador de frames
+    
     while True:
 
         # Leer cuadros del flujo
@@ -153,6 +156,10 @@ def run_mp(input_stream1, input_stream2, P0, P1):
         
         # Agregar los puntos clave 3D a la lista
         kpts_3d.append(frame_3ds_triangulated)
+        
+        # Desplegar número de frame
+        cv.putText(frame0, f"Frame: {frame_count}", (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+        cv.putText(frame1, f"Frame: {frame_count}", (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
 
         # Descomentar estos si quieres ver las detecciones completas de puntos clave
         mp_drawing.draw_landmarks(frame0, results0.pose_landmarks, mp_pose.POSE_CONNECTIONS,
@@ -163,6 +170,13 @@ def run_mp(input_stream1, input_stream2, P0, P1):
 
         cv.imshow('cam1', frame1)
         cv.imshow('cam0', frame0)
+        
+        # Save frame number 100
+        if frame_count == 100:
+            cv.imwrite('frame0_100.jpg', frame0)
+            cv.imwrite('frame1_100.jpg', frame1)
+        
+        frame_count += 1  # Incrementar contador de frames
 
         k = cv.waitKey(1)
         if k & 0xFF == 27: break # 27 es la tecla ESC.
