@@ -256,7 +256,7 @@ def save_frames_two_cams(camera0_name, camera1_name):
         frame1_small = cv.resize(frame1, None, fx=1./view_resize, fy=1./view_resize)
 
         if not start:
-            cv.putText(frame0_small, "Asegúrate de que ambas cámaras vean el patrón correctamente.", (50,50), cv.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 1)
+            cv.putText(frame0_small, "Asegurate de que ambas camaras vean el patron correctamente.", (50,50), cv.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 1)
             cv.putText(frame0_small, "Presiona ESPACIO para empezar a recoger frames.", (50,100), cv.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 1)
         
         if start:
