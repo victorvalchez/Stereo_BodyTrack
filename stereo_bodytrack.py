@@ -172,9 +172,9 @@ def run_mp(input_stream1, input_stream2, P0, P1):
         cv.imshow('cam0', frame0)
         
         # Save frame number 100
-        if frame_count == 100:
-            cv.imwrite('frame0_100.jpg', frame0)
-            cv.imwrite('frame1_100.jpg', frame1)
+        # if frame_count == 100:
+            # cv.imwrite('frame0_100.jpg', frame0)
+            # cv.imwrite('frame1_100.jpg', frame1)
         
         frame_count += 1  # Incrementar contador de frames
 
